@@ -333,7 +333,7 @@ public class Bootstrap {
         // select pid
         if (pid < 0) {
             try {
-                pid = ProcessUtils.select(bootstrap.isVerbose(), telnetPortPid);
+                pid = ProcessUtils.select(bootstrap.isVerbose(), telnetPortPid);//获取用户选择需要监控的java进程号
             } catch (InputMismatchException e) {
                 System.out.println("Please input an integer to select pid.");
                 System.exit(1);
@@ -344,7 +344,7 @@ public class Bootstrap {
             }
         }
 
-        if (telnetPortPid > 0 && pid != telnetPortPid) {
+        if (telnetPortPid > 0 && pid != telnetPortPid) {//端口冲突
             AnsiLog.error("Target process {} is not the process using port {}, you will connect to an unexpected process.",
                             pid, bootstrap.getTelnetPort());
             AnsiLog.error("1. Try to restart arthas-boot, select process {}, shutdown it first with running the 'stop' command.",
@@ -353,7 +353,7 @@ public class Bootstrap {
             System.exit(1);
         }
 
-        if (httpPortPid > 0 && pid != httpPortPid) {
+        if (httpPortPid > 0 && pid != httpPortPid) {//端口冲突
             AnsiLog.error("Target process {} is not the process using port {}, you will connect to an unexpected process.",
                             pid, bootstrap.getHttpPort());
             AnsiLog.error("1. Try to restart arthas-boot, select process {}, shutdown it first with running the 'stop' command.",

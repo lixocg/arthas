@@ -29,7 +29,7 @@ public class ProcessUtils {
 
     @SuppressWarnings("resource")
     public static long select(boolean v, long telnetPortPid) throws InputMismatchException {
-        Map<Long, String> processMap = listProcessByJps(v);
+        Map<Long/**pid*/, String/**process detail*/> processMap = listProcessByJps(v);//除当前运行进程和jps命令所属进程的jps命令所有进程
         // Put the port that is already listening at the first
         if (telnetPortPid > 0 && processMap.containsKey(telnetPortPid)) {
             String telnetPortProcess = processMap.get(telnetPortPid);
@@ -85,7 +85,7 @@ public class ProcessUtils {
         Map<Long, String> result = new LinkedHashMap<Long, String>();
 
         String jps = "jps";
-        File jpsFile = findJps();
+        File jpsFile = findJps();//查找jps命令
         if (jpsFile != null) {
             jps = jpsFile.getAbsolutePath();
         }
@@ -103,7 +103,7 @@ public class ProcessUtils {
 
         AnsiLog.debug("jps result: " + lines);
 
-        long currentPid = Long.parseLong(PidUtils.currentPid());
+        long currentPid = Long.parseLong(PidUtils.currentPid());//当前运行进程PID
         for (String line : lines) {
             String[] strings = line.trim().split("\\s+");
             if (strings.length < 1) {

@@ -255,6 +255,7 @@ public class ArthasBootstrap {
         }
 
         try {
+            //初始化服务端参数
             ShellServerOptions options = new ShellServerOptions()
                             .setInstrumentation(instrumentation)
                             .setPid(PidUtils.currentLongPid())
@@ -265,11 +266,17 @@ public class ArthasBootstrap {
                 welcomeInfos.put("id", agentId);
                 options.setWelcomeMessage(ArthasBanner.welcome(welcomeInfos));
             }
+
+            //创建服务server
             shellServer = new ShellServerImpl(options, this);
+
+            //使用命令模式，预设命令
             BuiltinCommandPack builtinCommands = new BuiltinCommandPack();
             List<CommandResolver> resolvers = new ArrayList<CommandResolver>();
             resolvers.add(builtinCommands);
             // TODO: discover user provided command resolver
+
+            //注册Telnet和Http的server，提供两种模式进行访问
             if (configure.getTelnetPort() > 0) {
                 shellServer.registerTermServer(new HttpTelnetTermServer(configure.getIp(), configure.getTelnetPort(),
                                 options.getConnectionTimeout()));
@@ -283,10 +290,12 @@ public class ArthasBootstrap {
                 logger().info("http port is {}, skip bind http server.", configure.getHttpPort());
             }
 
+            //注册命令解析器
             for (CommandResolver resolver : resolvers) {
                 shellServer.registerCommandResolver(resolver);
             }
 
+            //server进行监听，注册错误报错回调BindHandler
             shellServer.listen(new BindHandler(isBindRef));
 
             logger().info("as-server listening on network={};telnet={};http={};timeout={};", configure.getIp(),

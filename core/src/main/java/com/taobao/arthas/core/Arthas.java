@@ -17,13 +17,18 @@ import java.util.Arrays;
 import java.util.Properties;
 
 /**
- * Arthas启动器
+ * Arthas启动器，加载agent jar到对应进程java程序中
  */
 public class Arthas {
 
     private static final String DEFAULT_TELNET_PORT = "3658";
     private static final String DEFAULT_HTTP_PORT = "8563";
 
+    /**
+     * arthas启动入口
+     * @param args
+     * @throws Exception
+     */
     private Arthas(String[] args) throws Exception {
         attachAgent(parse(args));
     }
@@ -70,9 +75,11 @@ public class Arthas {
     }
 
     private void attachAgent(Configure configure) throws Exception {
+        //根据pid获取获取对应的java虚拟机容器类
         VirtualMachineDescriptor virtualMachineDescriptor = null;
         for (VirtualMachineDescriptor descriptor : VirtualMachine.list()) {
             String pid = descriptor.id();
+            //获取pid对应的虚拟机容器
             if (pid.equals(Long.toString(configure.getJavaPid()))) {
                 virtualMachineDescriptor = descriptor;
                 break;
@@ -80,15 +87,21 @@ public class Arthas {
         }
         VirtualMachine virtualMachine = null;
         try {
+            //获取对应需要监控的虚拟机
             if (null == virtualMachineDescriptor) { // 使用 attach(String pid) 这种方式
                 virtualMachine = VirtualMachine.attach("" + configure.getJavaPid());
             } else {
                 virtualMachine = VirtualMachine.attach(virtualMachineDescriptor);
             }
 
+            //获取虚拟机的系统参数，java.specification.version系统参数
             Properties targetSystemProperties = virtualMachine.getSystemProperties();
+            //目标虚拟机版本
             String targetJavaVersion = JavaVersionUtils.javaVersionStr(targetSystemProperties);
+            //当前虚拟机版本
             String currentJavaVersion = JavaVersionUtils.javaVersionStr();
+
+            //比较目标虚拟机版本和当前虚拟机版本是否一致
             if (targetJavaVersion != null && currentJavaVersion != null) {
                 if (!targetJavaVersion.equals(currentJavaVersion)) {
                     AnsiLog.warn("Current VM java version: {} do not match target VM java version: {}, attach may fail.",
@@ -102,6 +115,9 @@ public class Arthas {
             //convert jar path to unicode string
             configure.setArthasAgent(encodeArg(arthasAgentPath));
             configure.setArthasCore(encodeArg(configure.getArthasCore()));
+
+            //加载agent代理，在目标程序启动之后，根据pid获取进行运行后加载，javaSE 6新特性
+            // agent对应类入口：com.taobao.arthas.agent3.AgentBootstrap
             virtualMachine.loadAgent(arthasAgentPath,
                     configure.getArthasCore() + ";" + configure.toString());
         } finally {

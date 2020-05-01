@@ -14,7 +14,7 @@ import java.util.jar.JarFile;
 import com.taobao.arthas.agent.ArthasClassloader;
 
 /**
- * 代理启动类
+ * 代理(agent)启动类
  *
  * @author vlinux on 15/5/19.
  */
@@ -28,6 +28,7 @@ public class AgentBootstrap {
     private static final String BIND = "bind";
 
     private static PrintStream ps = System.err;
+
     static {
         try {
             File arthasLogDir = new File(System.getProperty("user.home") + File.separator + "logs" + File.separator
@@ -55,13 +56,25 @@ public class AgentBootstrap {
         }
     }
 
-    // 全局持有classloader用于隔离 Arthas 实现
+    /**
+     * 全局持有classloader用于隔离 Arthas 实现
+     */
     private static volatile ClassLoader arthasClassLoader;
 
+    /**
+     * 运行前的agent加载
+     * @param args
+     * @param inst
+     */
     public static void premain(String args, Instrumentation inst) {
         main(args, inst);
     }
 
+    /**
+     * 运行时的加载,在arthas中使用的是agentmain方法,该agent包是如何被封装成agent包使用，参见pom.xml -> manifestEntries
+     * @param args
+     * @param inst
+     */
     public static void agentmain(String args, Instrumentation inst) {
         main(args, inst);
     }
@@ -153,8 +166,13 @@ public class AgentBootstrap {
 
             /**
              * Use a dedicated thread to run the binding logic to prevent possible memory leak. #195
+             *  获取arthas-spy.jar，用bootstrapClassLoader进行加载
              */
             final ClassLoader agentLoader = getClassLoader(inst, spyJarFile, arthasCoreJarFile);
+
+            /**
+             * 初始化探针，加载com.taobao.arthas.core.advisor.AdviceWeaver中的methodOnBegin、methodOnReturnEnd、methodOnThrowingEnd等等方法
+             */
             initSpy();
 
             Thread bindingThread = new Thread() {

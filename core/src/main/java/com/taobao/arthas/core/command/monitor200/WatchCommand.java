@@ -16,6 +16,9 @@ import com.taobao.middleware.cli.annotations.Name;
 import com.taobao.middleware.cli.annotations.Option;
 import com.taobao.middleware.cli.annotations.Summary;
 
+/**
+ * WatchCommand主要用于观测方法的入参和返回参数信息，以及方法的耗时统计。使用ASM字节码技术对特定class进行字节码增强，并重新加载class使之生效
+ */
 @Name("watch")
 @Summary("Display the input/output parameter, return object, and thrown exception of specified method invocation")
 @Description(Constants.EXPRESS_DESCRIPTION + "\nExamples:\n" +
